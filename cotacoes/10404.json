@@ -1,0 +1,7 @@
+{"numero": "10404", "nome": "Elon Engenharia", "data": "2026-10-10",
+ "atual": "4.100,00", "quem": "a empresa paga",
+ "prioridade": {"rotulo": "Hospitais na Barra da Tijuca", "curto": "Na Barra da Tijuca", "tipo": "h", "termos": ["barra"], "cidade": "Rio de Janeiro", "regiao": "Zona Oeste"},
+ "planos": [
+  {"fonte": "e10202", "plano": "Especial 100", "nome": "Especial 100", "op": "SulAmérica", "sub": "Apartamento · com coparticipação", "preco": "3.548,45", "logo": "op_sulamerica"},
+  {"fonte": "e10404", "plano": "Porto Ouro Mais I", "nome": "Ouro Mais I", "op": "Porto", "sub": "Apartamento · com coparticipação", "preco": "4.773,87", "logo": "op_porto"}
+ ]}
