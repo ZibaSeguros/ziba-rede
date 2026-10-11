@@ -20,7 +20,11 @@ semEspaco();largura();window.addEventListener("resize",largura);
 /* número da cotação: ?e=10404 ou o último número do endereço */
 var q=new URLSearchParams(location.search).get("e"),n=(q||(location.pathname.match(/(\d{3,})\/?$/)||[])[1]||"").replace(/\D/g,"");
 if(!n){aviso("Rede credenciada","Abra esta página pelo link da sua cotação.");return;}
-fetch(BASE+"v2/e"+n+".json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(D){
+/* v2 (planos lado a lado); se não houver, lê a rede antiga (v1) para os links já enviados continuarem funcionando */
+function v1(D){var N=D.planos.length;return {v:2,id:D.id,nome:"",data:D.data,planos:D.planos.map(function(p,k){return {id:"o"+(k+1),nome:p.nome,op:"",sub:p.sub};}),
+  items:D.items.map(function(i){var c=[];for(var k=0;k<N;k++)c.push(i[6+k]?(i[0]=="h"?i[5]:(i[0]=="l"?[]:["Centro médico"])):null);return [i[0],i[1],i[2],i[3],i[4],c];})};}
+function pega(u){return fetch(u,{cache:"no-cache"}).then(function(r){if(!r.ok)throw 0;return r.json();});}
+pega(BASE+"v2/e"+n+".json").catch(function(){return pega(BASE+"e"+n+".json").then(v1);}).then(function(D){
   D.planos.forEach(function(p){if(p.logo&&!/^(data:|https?:)/.test(p.logo))p.logo=BASE+"logos/"+p.logo+".png";});
   var f=document.createElement("iframe");f.title="Rede credenciada da sua cotação";f.setAttribute("scrolling","no");
   f.addEventListener("load",function(){
