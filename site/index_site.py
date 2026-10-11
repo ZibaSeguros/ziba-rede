@@ -31,7 +31,7 @@ pega(AJAX+"?action=ziba_rede_dados&e="+n).then(function(j){
     window.ZD=D;
     var s=document.createElement("script");s.textContent=document.getElementById("zr-app").textContent;document.body.appendChild(s);
     /* aviso para a Ziba de que o cliente abriu a rede */
-    try{fetch(AJAX+"?action=ziba_rede_aviso&e="+n+"&p="+encodeURIComponent(D.planos.map(function(p){return p.nome;}).join(" / ")),{cache:"no-cache"});}catch(e){}
+    try{fetch(AJAX+"?action=ziba_rede_aviso&e="+n+"&p="+encodeURIComponent(D.planos.map(function(p){return p.nome;}).join(" / "))+"&n="+encodeURIComponent(new URLSearchParams(location.search).get("n")||""),{cache:"no-cache"});}catch(e){}
   });
 }).catch(function(){aviso("Rede credenciada","Não encontramos a rede desta cotação. Fale com o corretor responsável pela sua cotação.");});
 })();
