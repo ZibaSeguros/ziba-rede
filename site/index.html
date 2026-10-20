@@ -244,6 +244,17 @@ details.pr summary b:after{content:none!important}
 .ctro .cx{flex:none;width:24px;height:24px;display:grid;place-items:center;border:1px solid var(--marinho);border-radius:6px;font-size:16px;line-height:1}
 .ctro b{font-size:15px;font-weight:600}
 .op[aria-pressed="true"] .ec.mais{color:var(--cinza)!important}
+/* um plano só (Lucas, 20/10): o plano grande; embaixo a economia por mês e por ano; o plano de hoje vira uma linha discreta */
+.ops.um .op{flex-direction:column!important;align-items:flex-start!important;gap:8px!important;padding:18px 16px!important;border:1px solid var(--linha)!important}
+.ops.um .op .opl{height:28px!important;max-width:110px!important}
+.ops.um .op b{font-size:24px!important;font-weight:600;line-height:1.15}
+.ops.um .op .t>span{font-size:13px!important}
+.ops.um .op .pr{font-size:34px!important;font-weight:600;letter-spacing:-.02em;margin-top:8px!important;color:var(--azul)!important;line-height:1.1}
+.ops.um .op .pr small{font-size:15px!important}
+.ops.um .op .ec{display:grid!important;grid-template-columns:1fr 1fr;gap:2px 16px;font-size:20px!important;margin-top:12px!important;padding-top:12px!important}
+.ops.um .op .ec small{grid-row:1;font-size:12.5px!important}
+.ops.um .op .ec span{display:block!important;font-size:20px!important;font-weight:600;color:#0F7B4F!important}
+.hoje.um{padding:8px 2px!important}.hoje.um b{display:inline!important;font-size:14px!important;font-weight:600}.hoje.um b span{font-size:14px}
 </style>
 
 <header class="topo">
@@ -317,6 +328,7 @@ const dt = D.data ? D.data.split("-").reverse().join("/") : "";
 $("#meta").textContent = (D.nome ? "Preparado para " + D.nome + " · " : "") + "Atualizada em " + dt;
 if (N === 1) $("#h1").innerHTML = "Onde você é atendido <span>no " + esc(P[0].nome) + '<i class="pt">.</i></span>';
 if (D.exemplo) $("#q").placeholder = D.exemplo;
+if (N === 1){ const tt = document.querySelector(".tit"); tt.innerHTML = 'A rede do <span>seu plano</span><i class="pt">.</i>'; tt.nextElementSibling.textContent = "O valor, a economia e onde você é atendido."; }
 $("#nota").textContent = "Comparativo feito pela Ziba com a rede informada pelas operadoras na data da cotação.";
 
 // 1. prioridade do cliente
@@ -389,6 +401,7 @@ function compRegiao(){
 }
 // 2. botões das opções
 function opcoes(){
+  $("#ops").classList.toggle("um", N === 1);
   $("#ops").innerHTML = P.map((p,k)=>{
     const h = agrupa(items.filter(i=>i.t==="h"&&tem(i,k))).length, l = agrupa(items.filter(i=>i.t==="l"&&tem(i,k))).length;
     return `<button class="op" data-k="${k}" aria-pressed="${k===st.op}">${p.logo?`<img class="opl" src="${p.logo}" alt="${esc(p.op||"")}">`:""}<span class="t"><b>${esc(pnome(p))}</b><span>${h} hospitais<br>${l} laboratórios</span>${p.preco?`<em class="pr">R$ ${esc(p.preco)}<small> /mês</small></em>` + eco(p):""}</span><i>›</i></button>`;
@@ -439,7 +452,7 @@ function lista(){
 $("#q").addEventListener("input", e => { st.q = e.target.value; $("#limpa").hidden = !st.q; filtros(); lista(); });
 $("#limpa").onclick = () => { $("#q").value = ""; st.q = ""; $("#limpa").hidden = true; filtros(); lista(); $("#q").focus(); };
 
-if (ATUAL){ const q = D.quem || "você paga"; $("#hoje").hidden = false; $("#hoje").innerHTML = `<small>Seu plano hoje</small><b>${reais(ATUAL)}<span> por mês</span></b><p>Em cada opção abaixo, veja quanto ${/empresa/.test(q) ? "a empresa economiza" : "você economiza"}.</p>`; }
+if (ATUAL){ const q = D.quem || "você paga"; $("#hoje").hidden = false; $("#hoje").innerHTML = N === 1 ? `<small>Hoje você paga <b>${reais(ATUAL)}<span> por mês</span></b></small>` : `<small>Seu plano hoje</small><b>${reais(ATUAL)}<span> por mês</span></b><p>Em cada opção abaixo, veja quanto ${/empresa/.test(q) ? "a empresa economiza" : "você economiza"}.</p>`; if (N === 1) $("#hoje").classList.add("um"); }
 prioridade(); compRegiao(); opcoes(); filtros(); lista();
 })();
 
@@ -451,7 +464,9 @@ addEventListener('resize', umaLinha); addEventListener('load', umaLinha);
 </script><script>
 (function(){
 var AJAX="/wp-admin/admin-ajax.php", RAW="https://raw.githubusercontent.com/ZibaSeguros/ziba-rede/main/";
-var m=location.pathname.match(/(\d{3,})\/?$/), q=new URLSearchParams(location.search).get("e"), n=((q||"")||(m?m[1]:"")).replace(/\D/g,"");
+var m=location.pathname.match(/(\d{3,})\/?$/), q=new URLSearchParams(location.search).get("e"), nq=new URLSearchParams(location.search).get("n")||"", n=((q||"")||(m?m[1]:"")).replace(/\D/g,"");
+/* link limpo (Lucas, 20/10): depois de abrir, a barra mostra só zibaseguros.com.br/rede-credenciada, sem número nem nome; o número fica guardado para recarregar */
+try{ if(!n) n=sessionStorage.getItem("zr-e")||""; if(!nq) nq=sessionStorage.getItem("zr-n")||""; }catch(e){}
 function aviso(t,s){document.body.insertAdjacentHTML("afterbegin",'<div style="max-width:640px;margin:0 auto;padding:64px 16px;font:400 17px/1.5 Switzer,Inter,system-ui,sans-serif;color:#08214F"><b style="display:block;font-size:24px;font-weight:500;color:#001E62;margin-bottom:6px">'+t+'</b>'+s+'</div>');document.querySelectorAll("body > :not(div):not(script)").forEach(function(e){e.style.display="none"});}
 function pega(u){return fetch(u,{cache:"no-cache"}).then(function(r){if(!r.ok)throw 0;return r.json();});}
 function v1(P){var N=P.planos.length;return {v:2,id:P.id,data:P.data,planos:P.planos.map(function(p,k){return {id:"o"+(k+1),nome:p.nome,op:"",sub:p.sub};}),
@@ -464,9 +479,10 @@ pega(AJAX+"?action=ziba_rede_dados&e="+n).then(function(j){
     if(j.c)D.nome=j.c;
     D.planos.forEach(function(p){if(p.logo&&!/^(data:|https?:)/.test(p.logo))p.logo=RAW+"logos/"+p.logo+".png";});
     window.ZD=D;
+    try{ sessionStorage.setItem("zr-e",n); if(nq) sessionStorage.setItem("zr-n",nq); history.replaceState(null,"",location.pathname.replace(/\d{3,}\/?$/,"")); }catch(e){}
     var s=document.createElement("script");s.textContent=document.getElementById("zr-app").textContent;document.body.appendChild(s);
     /* aviso para a Ziba de que o cliente abriu a rede */
-    try{fetch(AJAX+"?action=ziba_rede_aviso&e="+n+"&p="+encodeURIComponent(D.planos.map(function(p){return p.nome;}).join(" / "))+"&n="+encodeURIComponent(new URLSearchParams(location.search).get("n")||""),{cache:"no-cache"});}catch(e){}
+    try{fetch(AJAX+"?action=ziba_rede_aviso&e="+n+"&p="+encodeURIComponent(D.planos.map(function(p){return p.nome;}).join(" / "))+"&n="+encodeURIComponent(nq||D.nome||""),{cache:"no-cache"});}catch(e){}
   });
 }).catch(function(){aviso("Rede credenciada","Não encontramos a rede desta cotação. Fale com o corretor responsável pela sua cotação.");});
 })();
