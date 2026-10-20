@@ -483,18 +483,23 @@ pega(AJAX+"?action=ziba_rede_dados&e="+n).then(function(j){
     var D=(D2&&D2.v==2)?D2:(j.produto.v==2?j.produto:v1(j.produto));
     if(j.c)D.nome=j.c;
     D.planos.forEach(function(p){if(p.logo&&!/^(data:|https?:)/.test(p.logo))p.logo=RAW+"logos/"+p.logo+".png";});
-    /* rede em mais de um estado: mostra um por vez, com a região de preferência de cada um */
-    var E=null;
+    /* rede em mais de um estado: mostra um por vez, com a região de preferência de cada um; a troca é na hora, sem recarregar */
+    var E=null, TODOS=D.items, EX0=D.exemplo;
+    function roda(){var s=document.createElement("script");s.textContent=document.getElementById("zr-app").textContent;document.body.appendChild(s);s.remove();}
+    function estado(x){E=x;D.items=TODOS.filter(function(i){return i[2]==x.uf;});D.prioridade=x.prioridade||null;D.ordem=x.ordem||null;D.exemplo=x.exemplo||EX0;window.ZD=D;}
     if(D.estados&&D.estados.length>1){var u="";try{u=sessionStorage.getItem("zr-uf-"+n)||"";}catch(e){}
-      E=D.estados.filter(function(x){return x.uf==u;})[0]||D.estados[0];
-      D.items=D.items.filter(function(i){return i[2]==E.uf;}); D.prioridade=E.prioridade||null; D.ordem=E.ordem||null; D.exemplo=E.exemplo||D.exemplo;}
+      estado(D.estados.filter(function(x){return x.uf==u;})[0]||D.estados[0]);}
     window.ZD=D;
     try{ sessionStorage.setItem("zr-e",n); if(nq) sessionStorage.setItem("zr-n",nq); history.replaceState(null,"",location.pathname.replace(/\d{3,}\/?$/,"")); }catch(e){}
-    var s=document.createElement("script");s.textContent=document.getElementById("zr-app").textContent;document.body.appendChild(s);
+    roda();
     if(E){var h='<div class="ufs"><p>Ver a rede em</p><div>'+D.estados.map(function(x){return '<button data-uf="'+x.uf+'" aria-pressed="'+(x.uf==E.uf)+'">'+x.nome+'</button>';}).join("")+'</div></div>';
-      var alvo=document.getElementById("creg");alvo.insertAdjacentHTML("beforebegin",h);
-      document.querySelectorAll(".ufs button").forEach(function(b){b.onclick=function(){if(b.dataset.uf==E.uf)return;try{sessionStorage.setItem("zr-uf-"+n,b.dataset.uf);sessionStorage.setItem("zr-rolar","1");}catch(e){}location.reload();};});
-      try{if(sessionStorage.getItem("zr-rolar")){sessionStorage.removeItem("zr-rolar");document.querySelector(".ufs").scrollIntoView({block:"start"});}}catch(e){}}
+      document.getElementById("creg").insertAdjacentHTML("beforebegin",h);
+      document.querySelectorAll(".ufs button").forEach(function(b){b.onclick=function(){if(b.dataset.uf==E.uf)return;
+        try{sessionStorage.setItem("zr-uf-"+n,b.dataset.uf);}catch(e){}
+        var y=window.scrollY, q=document.getElementById("q"), q2=q.cloneNode(true); q2.value=""; q.replaceWith(q2);
+        estado(D.estados.filter(function(x){return x.uf==b.dataset.uf;})[0]); roda();
+        document.querySelectorAll(".ufs button").forEach(function(c){c.setAttribute("aria-pressed",c===b);});
+        window.scrollTo(0,y);};});}
     /* aviso para a Ziba de que o cliente abriu a rede */
     try{fetch(AJAX+"?action=ziba_rede_aviso&e="+n+"&p="+encodeURIComponent(D.planos.map(function(p){return p.nome;}).join(" / "))+"&n="+encodeURIComponent(nq||D.nome||""),{cache:"no-cache"});}catch(e){}
   });
