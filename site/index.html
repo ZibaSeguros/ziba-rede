@@ -255,6 +255,11 @@ details.pr summary b:after{content:none!important}
 .ops.um .op .ec small{grid-row:1;font-size:12.5px!important}
 .ops.um .op .ec span{display:block!important;font-size:20px!important;font-weight:600;color:#0F7B4F!important}
 .hoje.um{padding:8px 2px!important}.hoje.um b{display:inline!important;font-size:14px!important;font-weight:600}.hoje.um b span{font-size:14px}
+/* escolha do estado da rede (Lucas, 20/10): cliente que usa a rede em dois estados escolhe qual ver */
+.ufs{margin:20px 0 14px}.ufs p{margin:0 0 6px;font-size:13px;color:var(--cinza)}
+.ufs div{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ufs button{min-height:46px;border:1px solid var(--linha);border-radius:0;background:var(--branco);font:inherit;font-size:15px;font-weight:600;color:var(--marinho)}
+.ufs button[aria-pressed="true"]{background:var(--marinho);color:var(--branco);border-color:var(--marinho)}
 </style>
 
 <header class="topo">
@@ -478,9 +483,18 @@ pega(AJAX+"?action=ziba_rede_dados&e="+n).then(function(j){
     var D=(D2&&D2.v==2)?D2:(j.produto.v==2?j.produto:v1(j.produto));
     if(j.c)D.nome=j.c;
     D.planos.forEach(function(p){if(p.logo&&!/^(data:|https?:)/.test(p.logo))p.logo=RAW+"logos/"+p.logo+".png";});
+    /* rede em mais de um estado: mostra um por vez, com a região de preferência de cada um */
+    var E=null;
+    if(D.estados&&D.estados.length>1){var u="";try{u=sessionStorage.getItem("zr-uf-"+n)||"";}catch(e){}
+      E=D.estados.filter(function(x){return x.uf==u;})[0]||D.estados[0];
+      D.items=D.items.filter(function(i){return i[2]==E.uf;}); D.prioridade=E.prioridade||null; D.ordem=E.ordem||null; D.exemplo=E.exemplo||D.exemplo;}
     window.ZD=D;
     try{ sessionStorage.setItem("zr-e",n); if(nq) sessionStorage.setItem("zr-n",nq); history.replaceState(null,"",location.pathname.replace(/\d{3,}\/?$/,"")); }catch(e){}
     var s=document.createElement("script");s.textContent=document.getElementById("zr-app").textContent;document.body.appendChild(s);
+    if(E){var h='<div class="ufs"><p>Ver a rede em</p><div>'+D.estados.map(function(x){return '<button data-uf="'+x.uf+'" aria-pressed="'+(x.uf==E.uf)+'">'+x.nome+'</button>';}).join("")+'</div></div>';
+      var alvo=document.getElementById("creg");alvo.insertAdjacentHTML("beforebegin",h);
+      document.querySelectorAll(".ufs button").forEach(function(b){b.onclick=function(){if(b.dataset.uf==E.uf)return;try{sessionStorage.setItem("zr-uf-"+n,b.dataset.uf);sessionStorage.setItem("zr-rolar","1");}catch(e){}location.reload();};});
+      try{if(sessionStorage.getItem("zr-rolar")){sessionStorage.removeItem("zr-rolar");document.querySelector(".ufs").scrollIntoView({block:"start"});}}catch(e){}}
     /* aviso para a Ziba de que o cliente abriu a rede */
     try{fetch(AJAX+"?action=ziba_rede_aviso&e="+n+"&p="+encodeURIComponent(D.planos.map(function(p){return p.nome;}).join(" / "))+"&n="+encodeURIComponent(nq||D.nome||""),{cache:"no-cache"});}catch(e){}
   });
