@@ -292,7 +292,7 @@ const NEUTRA = ["Centro","Zona Sul","Zona Norte","Zona Oeste","Niterói","São G
 const VIZINHAS = {"Zona Oeste":["Zona Oeste","Zona Sul","Centro","Zona Norte","Nova Iguaçu","Duque de Caxias","Niterói"],
   "Zona Sul":["Zona Sul","Centro","Zona Oeste","Zona Norte","Niterói"], "Centro":["Centro","Zona Sul","Zona Norte","Zona Oeste","Niterói"],
   "Zona Norte":["Zona Norte","Centro","Zona Sul","Zona Oeste","Duque de Caxias","São João de Meriti","Niterói"], "Niterói":["Niterói","São Gonçalo","Centro","Zona Sul","Zona Norte","Zona Oeste"]};
-const ORDEM = (D.prioridade && VIZINHAS[D.prioridade.regiao]) ? VIZINHAS[D.prioridade.regiao].concat(NEUTRA.filter(r => !VIZINHAS[D.prioridade.regiao].includes(r))) : NEUTRA;
+const ORDEM = (D.ordem && D.ordem.length) ? D.ordem : (D.prioridade && VIZINHAS[D.prioridade.regiao]) ? VIZINHAS[D.prioridade.regiao].concat(NEUTRA.filter(r => !VIZINHAS[D.prioridade.regiao].includes(r))) : NEUTRA;
 const SERVS = ["Pronto-socorro","PS infantil","Maternidade","Internação"];
 const ICON_SIM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
 const ICON_NAO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M7 12h10"/></svg>';
@@ -306,6 +306,8 @@ const items = D.items.map(i => ({t:i[0], nome:i[1], cid:i[3], reg:i[4], cob:i[5]
 const grupo = i => i.cid === "Rio de Janeiro" && i.reg ? i.reg : i.cid;
 const ehPriT = (i,t) => PR && i.t === t && (!PR.cidade || i.cid === PR.cidade) && (PR.termos.some(x => sem(i.nome).includes(sem(x))) || (PR.nomes||[]).some(n => sem(i.nome).includes(sem(n))));
 const ehPri = i => ehPriT(i, st.tipo);
+const DEST = (PR && PR.destaques || []).map(sem);
+const dpos = n => { const k = DEST.findIndex(d => sem(n).includes(d)); return k < 0 ? 99 : k; };
 const tem = (i,k) => i.cob[k] !== null;
 
 let st = {op:0, tipo:"h", serv:null, q:""};
@@ -314,6 +316,7 @@ try{ const s = JSON.parse(localStorage.getItem("zr-"+D.id)||"{}"); if(s.op < N) 
 const dt = D.data ? D.data.split("-").reverse().join("/") : "";
 $("#meta").textContent = (D.nome ? "Preparado para " + D.nome + " · " : "") + "Atualizada em " + dt;
 if (N === 1) $("#h1").innerHTML = "Onde você é atendido <span>no " + esc(P[0].nome) + '<i class="pt">.</i></span>';
+if (D.exemplo) $("#q").placeholder = D.exemplo;
 $("#nota").textContent = "Comparativo feito pela Ziba com a rede informada pelas operadoras na data da cotação.";
 
 // 1. prioridade do cliente
@@ -322,7 +325,7 @@ function bloco(t, rotulo, plural){
   if (!lista.length) return {conta: P.map(()=>0), lista, det: ""};
   const conta = P.map((p,k) => lista.filter(g => temG(g,k)).length);
   const max = Math.max(...conta);
-  const linhas = lista.sort((a,b) => P.filter((p,k)=>temG(b,k)).length - P.filter((p,k)=>temG(a,k)).length || a.nome.localeCompare(b.nome))
+  const linhas = lista.sort((a,b) => dpos(a.nome) - dpos(b.nome) || P.filter((p,k)=>temG(b,k)).length - P.filter((p,k)=>temG(a,k)).length || a.nome.localeCompare(b.nome))
     .map((g,j) => `<tr${j>=LIM?' hidden':''}><td>${esc(g.nome)}${unTxt(g)}${servHtml(servG(g))}</td>${P.map((p,k)=>`<td>${temG(g,k)?`<span class="sim" aria-label="Atende">${ICON_SIM}</span>`:`<span class="nao" aria-label="Não atende">${ICON_NAO}</span>`}</td>`).join("")}</tr>`).join("");
   return {conta, lista, det: `<button class="ver" data-ver aria-expanded="false">Ver ${plural} um a um</button><div class="det" hidden><table class="mx"><tr><th>${lista.length} ${plural}</th>${P.map(p=>`<th>${plogo(p,"tl")}${esc(pnome(p))}</th>`).join("")}</tr>${linhas}</table>${lista.length>LIM?`<button class="mais" data-mais>Ver mais ${plural}</button>`:""}</div>`};
 }
@@ -423,7 +426,7 @@ function lista(){
   const ordem = [...G.keys()].sort((a,b) => pos(a) - pos(b) || G.get(b).length - G.get(a).length || a.localeCompare(b));
   let abertos = q ? 99 : 1;
   $("#lista").innerHTML = ordem.map((g,n) => {
-    const arr = agrupa(G.get(g)).sort((a,b)=>a.nome.localeCompare(b.nome));
+    const arr = agrupa(G.get(g)).sort((a,b)=>(g==="★" ? dpos(a.nome) - dpos(b.nome) : 0) || a.nome.localeCompare(b.nome));
     const nome = g==="★" ? LUGAR : g;
     const lim = 12;
     const onde = gr => { const s = new Set(gr.itens.map(i => i.cid==="Rio de Janeiro"?(i.reg?i.reg+", Rio":"Rio"):i.cid)); return [...s].join(" · "); };
