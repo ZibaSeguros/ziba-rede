@@ -351,7 +351,7 @@ $("#meta").textContent = (D.nome ? "Preparado para " + D.nome + " · " : "") + "
 if (N === 1) $("#h1").innerHTML = "Onde você é atendido <span>no " + esc(P[0].nome) + '<i class="pt">.</i></span>';
 if (D.exemplo) $("#q").placeholder = D.exemplo;
 else { const d0 = PR && PR.destaques && PR.destaques[0], c0 = PR && (PR.cidade || PR.regiao); $("#q").placeholder = d0 && c0 ? "Ex.: " + d0 + " ou " + c0 : "Ex.: nome do hospital ou bairro"; }
-if (N === 1){ const tt = document.querySelector(".tit"); tt.innerHTML = 'A rede do <span>seu plano</span><i class="pt">.</i>'; tt.nextElementSibling.textContent = "O valor, a economia e onde você é atendido."; }
+if (N === 1){ const tt = document.querySelector(".tit"); tt.innerHTML = 'A rede do <span>seu plano</span><i class="pt">.</i>'; tt.nextElementSibling.textContent = P.some(p => p.preco) ? "O valor, a economia e onde você é atendido." : "Os hospitais e laboratórios onde você é atendido."; }
 $("#nota").textContent = "Comparativo feito pela Ziba com a rede informada pelas operadoras na data da cotação.";
 
 // 1. prioridade do cliente
